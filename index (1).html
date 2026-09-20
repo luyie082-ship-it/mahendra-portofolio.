@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Portfolio of Mahendra Nur Aditya, software engineer. Python, C++, JavaScript, Java, PHP, Docker, Git, GitHub.">
+<title>Mahendra Nur Aditya - Software Engineer Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;500;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #060814;
+    --deep: #0d1233;
+    --ion: #58e6ff;
+    --plasma: #9b7bff;
+    --ember: #ff8a5c;
+    --ink: #e9edff;
+    --mute: #a9b1e2;
+    --font-display: 'Unbounded', 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); scroll-behavior: smooth; background: var(--void); }
+  *, *::before, *::after { box-sizing: inherit; }
+  body {
+    margin: 0;
+    background: var(--void);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  body.dragging { cursor: grabbing; user-select: none; -webkit-user-select: none; }
+  body.pick { cursor: pointer; }
+  a { color: inherit; }
+
+  /* Panggung 3D */
+  #stage { position: fixed; inset: 0; z-index: 0; }
+  #stage canvas { display: block; }
+  .veil {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      linear-gradient(90deg, rgba(6,8,20,.82) 0%, rgba(6,8,20,.4) 38%, rgba(6,8,20,0) 62%),
+      radial-gradient(ellipse at 70% 50%, rgba(6,8,20,0) 45%, rgba(6,8,20,.6) 100%);
+  }
+  html.no-webgl body {
+    background: radial-gradient(ellipse at 70% 40%, #1a2160 0%, var(--void) 65%);
+  }
+  html.no-webgl #stage, html.no-webgl #tags { display: none; }
+
+  /* Navigasi */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 5;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: calc(env(safe-area-inset-top, 0px) + 16px) clamp(20px, 4vw, 56px) 18px;
+    background: linear-gradient(to bottom, rgba(6,8,20,.9), rgba(6,8,20,0));
+  }
+  .mark { font-family: var(--font-display); font-weight: 500; font-size: .85rem; text-decoration: none; letter-spacing: .01em; }
+  .nav nav { display: flex; gap: clamp(14px, 3vw, 34px); }
+  .nav nav a { text-decoration: none; font-weight: 500; font-size: .95rem; color: var(--mute); padding: 6px 2px; transition: color .2s; }
+  .nav nav a:hover { color: var(--ion); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--ion); outline-offset: 3px; }
+
+  /* Bagian */
+  main { position: relative; z-index: 1; }
+  .sec {
+    min-height: 100vh; min-height: 100svh;
+    display: flex; align-items: center;
+    padding: 104px clamp(20px, 6vw, 96px) 80px;
+  }
+  .panel { max-width: 30rem; text-shadow: 0 1px 14px rgba(6,8,20,.9); }
+  h1, h2 { font-family: var(--font-display); margin: 0; }
+  h1 { font-weight: 700; font-size: clamp(2.3rem, 5.4vw, 4.6rem); line-height: 1.04; letter-spacing: -.025em; }
+  h2 { font-weight: 500; font-size: clamp(1.6rem, 3.2vw, 2.5rem); line-height: 1.12; letter-spacing: -.015em; }
+  .role { font-family: var(--font-display); font-weight: 300; font-size: clamp(1.05rem, 2vw, 1.45rem); color: var(--ion); margin: 18px 0 0; }
+  .lede { color: var(--mute); margin: 18px 0 0; max-width: 27rem; }
+  .sec p.body { color: var(--mute); margin: 16px 0 0; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+  .hint { margin: 26px 0 0; font-size: .9rem; color: var(--mute); opacity: .85; }
+
+  /* Tombol dengan sudut terpotong */
+  .btn, .chip {
+    --cut: 12px;
+    clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut)));
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    font: 700 1rem/1 var(--font-body); text-decoration: none; cursor: pointer; border: 0;
+    padding: 16px 24px; text-shadow: none;
+    transition: background .2s, color .2s;
+  }
+  .btn svg { width: 20px; height: 20px; flex: none; }
+  .btn.primary { background: var(--ion); color: #04101a; }
+  .btn.primary:hover { background: #ffffff; }
+  .btn.ghost { background: rgba(88,230,255,.13); color: var(--ink); }
+  .btn.ghost:hover { background: rgba(88,230,255,.26); }
+  .btn.big { padding: 20px 30px; font-size: 1.1rem; }
+  .btn:focus-visible, .chip:focus-visible { outline: none; background: #fff; color: #04101a; box-shadow: inset 0 0 0 3px var(--plasma); }
+
+  /* Daftar keahlian */
+  .chips { list-style: none; margin: 26px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip {
+    --cut: 9px; --c: #58e6ff;
+    display: inline-flex; align-items: center; gap: 10px;
+    font: 600 .98rem/1 var(--font-body); color: var(--ink); text-shadow: none;
+    background: rgba(120,140,255,.16); border: 0; cursor: pointer;
+    padding: 12px 18px 12px 14px;
+    transition: background .2s, color .2s;
+  }
+  .chip i { width: 10px; height: 10px; background: var(--c); transform: rotate(45deg); box-shadow: 0 0 10px var(--c); transition: background .2s, box-shadow .2s; }
+  .chips[data-shape="cube"] i { transform: none; }
+  .chip:hover, .chip.on { background: var(--c); color: #050816; }
+  .chip:hover i, .chip.on i { background: #050816; box-shadow: none; }
+
+  /* Label 3D yang mengikuti node */
+  #tags { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+  .tag {
+    --c: #58e6ff;
+    position: absolute; left: 0; top: 0;
+    translate: -50% calc(-100% - 24px);
+    visibility: hidden; opacity: 0; pointer-events: none;
+    font: 600 .85rem/1 var(--font-body); color: var(--ink); white-space: nowrap;
+    background: rgba(6,8,20,.72); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    border: 0; border-left: 2px solid var(--c); padding: 8px 11px; cursor: pointer;
+    transition: background .2s, color .2s;
+    will-change: transform, opacity;
+  }
+  .tag.on { background: var(--c); color: #050816; }
+
+  /* Kontak */
+  .number { font-family: var(--font-display); font-weight: 500; font-size: clamp(1.2rem, 2.6vw, 1.7rem); letter-spacing: .02em; margin: 26px 0 0; }
+  .copy-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+  .link-btn { background: none; border: 0; padding: 6px 0; font: 600 .95rem var(--font-body); color: var(--ion); cursor: pointer; text-decoration: underline; text-underline-offset: 4px; text-shadow: none; }
+  .link-btn:hover { color: #fff; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .foot { margin: 56px 0 0; font-size: .85rem; color: var(--mute); opacity: .8; }
+
+  /* Tombol WhatsApp melayang */
+  .fab {
+    position: fixed; z-index: 6;
+    right: calc(env(safe-area-inset-right, 0px) + 16px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+    transition: opacity .3s, transform .3s;
+  }
+  .fab.away { opacity: 0; transform: translateY(12px); pointer-events: none; }
+
+  /* Tata letak bertumpuk untuk layar sempit atau potret */
+  @media (max-aspect-ratio: 23/20) {
+    .sec { align-items: flex-end; padding-bottom: 96px; }
+    .panel {
+      max-width: none; width: 100%;
+      background: rgba(6,8,20,.66); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+      padding: 22px 20px; text-shadow: none;
+    }
+    .veil { background: radial-gradient(ellipse at 50% 30%, rgba(6,8,20,0) 40%, rgba(6,8,20,.55) 100%); }
+    .nav nav a:first-child { display: none; }
+  }
+  @media (max-width: 420px) {
+    .nav nav { gap: 12px; }
+    .btn { padding: 15px 18px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .btn, .chip, .tag, .fab { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage" aria-hidden="true"></div>
+<div class="veil" aria-hidden="true"></div>
+<div id="tags"></div>
+
+<header class="nav">
+  <a class="mark" href="#beranda">Mahendra Nur Aditya</a>
+  <nav aria-label="Main navigation">
+    <a href="#bahasa">Languages</a>
+    <a href="#tools">Tools</a>
+    <a href="#kontak">Contact</a>
+  </nav>
+</header>
+
+<main>
+  <section id="beranda" class="sec" aria-labelledby="judul-utama">
+    <div class="panel">
+      <h1 id="judul-utama">Mahendra<br>Nur Aditya</h1>
+      <p class="role">Software Engineer</p>
+      <p class="lede">Building software with Python, C++, JavaScript, Java, and PHP.</p>
+      <div class="actions">
+        <a class="btn primary" data-wa href="#" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
+          Chat on WhatsApp
+        </a>
+        <a class="btn ghost" href="#bahasa">View skills</a>
+      </div>
+      <p class="hint" id="hint">Drag to spin the orbits. Scroll to explore.</p>
+    </div>
+  </section>
+
+  <section id="bahasa" class="sec" aria-labelledby="judul-bahasa">
+    <div class="panel">
+      <h2 id="judul-bahasa">Programming languages</h2>
+      <p class="body">Five languages I am proficient in. Hover over the orbiting nodes, or pick one below.</p>
+      <ul class="chips" data-key="lang">
+        <li><button type="button" class="chip" data-node="Python" style="--c:#58e6ff"><i></i>Python</button></li>
+        <li><button type="button" class="chip" data-node="C++" style="--c:#7b8cff"><i></i>C++</button></li>
+        <li><button type="button" class="chip" data-node="JavaScript" style="--c:#ffc857"><i></i>JavaScript</button></li>
+        <li><button type="button" class="chip" data-node="Java" style="--c:#ff7a8a"><i></i>Java</button></li>
+        <li><button type="button" class="chip" data-node="PHP" style="--c:#b58cff"><i></i>PHP</button></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="tools" class="sec" aria-labelledby="judul-tools">
+    <div class="panel">
+      <h2 id="judul-tools">Tools</h2>
+      <p class="body">Docker for containers, Git and GitHub for version control and code collaboration.</p>
+      <ul class="chips" data-key="tool" data-shape="cube">
+        <li><button type="button" class="chip" data-node="Docker" style="--c:#5ab8ff"><i></i>Docker</button></li>
+        <li><button type="button" class="chip" data-node="Git" style="--c:#ff8a5c"><i></i>Git</button></li>
+        <li><button type="button" class="chip" data-node="GitHub" style="--c:#d9def7"><i></i>GitHub</button></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="kontak" class="sec" aria-labelledby="judul-kontak">
+    <div class="panel">
+      <h2 id="judul-kontak">Interested in working together?</h2>
+      <p class="body">Message me directly on WhatsApp and tell me what you need.</p>
+      <div class="actions">
+        <a class="btn primary big" data-wa href="#" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
+          Chat on WhatsApp
+        </a>
+      </div>
+      <p class="number" id="waNumber">0857 0756 8188</p>
+      <div class="copy-row">
+        <button type="button" class="link-btn" id="copyBtn">Copy number</button>
+        <span class="sr" id="copyStatus" role="status" aria-live="polite"></span>
+      </div>
+      <p class="foot">&copy; 2026 Mahendra Nur Aditya</p>
+    </div>
+  </section>
+</main>
+
+<a class="btn primary fab" id="fab" data-wa href="#" target="_blank" rel="noopener noreferrer">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
+  Chat on WhatsApp
+</a>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var doc = document, root = doc.documentElement;
+  var WA_NUMBER = '085707568188';
+  var WA_URL = 'https://wa.me/6285707568188?text=' +
+    encodeURIComponent('Hello Mahendra, I came across your portfolio and would like to talk.');
+  var reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var coarse = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
+
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function smooth(x) { return x * x * (3 - 2 * x); }
+
+  /* ---------- Bagian UI (tetap berfungsi tanpa WebGL) ---------- */
+  [].forEach.call(doc.querySelectorAll('[data-wa]'), function (a) { a.href = WA_URL; });
+
+  var hint = doc.getElementById('hint');
+  if (hint && coarse) hint.textContent = 'Scroll to explore. Tap a node to see its name.';
+
+  var numEl = doc.getElementById('waNumber');
+  var copyBtn = doc.getElementById('copyBtn');
+  var copyStatus = doc.getElementById('copyStatus');
+  copyBtn.addEventListener('click', function () {
+    function done() {
+      copyBtn.textContent = 'Copied';
+      copyStatus.textContent = 'WhatsApp number copied';
+      setTimeout(function () { copyBtn.textContent = 'Copy number'; }, 2000);
+    }
+    function fallback() {
+      try {
+        var r = doc.createRange(); r.selectNodeContents(numEl);
+        var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        copyStatus.textContent = 'Number selected. Press Ctrl+C to copy.';
+      } catch (e) { /* abaikan */ }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(WA_NUMBER).then(done, fallback);
+    } else { fallback(); }
+  });
+
+  var secs = [].slice.call(doc.querySelectorAll('.sec'));
+  var tops = [];
+  function measure() { tops = secs.map(function (s) { return s.offsetTop; }); }
+
+  var fab = doc.getElementById('fab');
+  var contactSec = doc.getElementById('kontak');
+  function updateFab() {
+    var inContact = (window.pageYOffset + window.innerHeight * 0.55) >= contactSec.offsetTop;
+    fab.classList.toggle('away', inContact);
+  }
+
+  /* ---------- Adegan 3D ---------- */
+  var STATES = [
+    { cx: 0, cy: 1.4, cz: 10.5, lT: 1.25, lZ: 0.25, tT: 0.55, tZ: -0.5, lW: 0, tW: 0, core: 1.0,  sig: 0, lo: 0.35, to: 0.35 },
+    { cx: 0, cy: 2.4, cz: 9.5,  lT: 0.55, lZ: 0.12, tT: 1.2,  tZ: -0.3, lW: 1, tW: 0, core: 0.85, sig: 0, lo: 0.6,  to: 0.25 },
+    { cx: 0, cy: 1.2, cz: 8.0,  lT: 1.3,  lZ: 0.4,  tT: 0.4,  tZ: -0.08, lW: 0, tW: 1, core: 0.85, sig: 0, lo: 0.25, to: 0.7 },
+    { cx: 0, cy: 0.7, cz: 12.5, lT: 0.9,  lZ: 0.5,  tT: 0.6,  tZ: -0.6, lW: 0, tW: 0, core: 1.35, sig: 1, lo: 0.3,  to: 0.3 }
+  ];
+  var KEYS = Object.keys(STATES[0]);
+
+  function initScene() {
+    if (!window.THREE) throw new Error('three.js tidak termuat');
+    var THREE = window.THREE;
+
+    var stage = doc.getElementById('stage');
+    var tagsEl = doc.getElementById('tags');
+    var renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setClearColor(0x060814, 1);
+    stage.appendChild(renderer.domElement);
+
+    var scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x060814, 0.028);
+    var camera = new THREE.PerspectiveCamera(50, 1, 0.1, 200);
+    var world = new THREE.Group();
+    scene.add(world);
+
+    /* tekstur cahaya lembut */
+    var glowMap = (function () {
+      var c = doc.createElement('canvas'); c.width = c.height = 128;
+      var g = c.getContext('2d');
+      var gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+      gr.addColorStop(0, 'rgba(255,255,255,1)');
+      gr.addColorStop(0.25, 'rgba(255,255,255,0.35)');
+      gr.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+      return new THREE.CanvasTexture(c);
+    })();
+    function glow(color, size, opacity) {
+      var m = new THREE.SpriteMaterial({ map: glowMap, color: color, transparent: true, opacity: opacity, depthWrite: false, blending: THREE.AdditiveBlending });
+      var s = new THREE.Sprite(m); s.scale.set(size, size, 1); return s;
+    }
+
+    /* inti */
+    var core = new THREE.Group(); world.add(core);
+    var shellA = new THREE.Mesh(new THREE.IcosahedronGeometry(1.2, 2),
+      new THREE.MeshBasicMaterial({ color: '#58e6ff', wireframe: true, transparent: true, opacity: 0.55 }));
+    var shellB = new THREE.Mesh(new THREE.IcosahedronGeometry(0.85, 1),
+      new THREE.MeshBasicMaterial({ color: '#9b7bff', wireframe: true, transparent: true, opacity: 0.85 }));
+    var nucleus = new THREE.Mesh(new THREE.SphereGeometry(0.4, 32, 32), new THREE.MeshBasicMaterial({ color: '#dff8ff' }));
+    var coreGlow = glow('#58e6ff', 7, 0.9);
+    var ringA = new THREE.Mesh(new THREE.TorusGeometry(1.65, 0.012, 8, 160), new THREE.MeshBasicMaterial({ color: '#58e6ff', transparent: true, opacity: 0.8 }));
+    var ringB = new THREE.Mesh(new THREE.TorusGeometry(1.95, 0.01, 8, 160), new THREE.MeshBasicMaterial({ color: '#9b7bff', transparent: true, opacity: 0.7 }));
+    core.add(shellA, shellB, nucleus, coreGlow, ringA, ringB);
+
+    /* orbit */
+    function makeOrbit(key, radius, items, lineColor, shape) {
+      var tilt = new THREE.Group(); world.add(tilt);
+      var spin = new THREE.Group(); tilt.add(spin);
+      var pts = [];
+      for (var i = 0; i <= 160; i++) {
+        var a = (i / 160) * Math.PI * 2;
+        pts.push(new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius));
+      }
+      var lineMat = new THREE.LineBasicMaterial({ color: lineColor, transparent: true, opacity: 0.4 });
+      spin.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), lineMat));
+
+      var nodes = items.map(function (it, idx) {
+        var a = (idx / items.length) * Math.PI * 2;
+        var g = new THREE.Group();
+        g.position.set(Math.cos(a) * radius, 0, Math.sin(a) * radius);
+        spin.add(g);
+        var cube = shape === 'cube';
+        var shell = new THREE.Mesh(
+          cube ? new THREE.BoxGeometry(0.44, 0.44, 0.44) : new THREE.OctahedronGeometry(0.32),
+          new THREE.MeshBasicMaterial({ color: it.color, wireframe: true, transparent: true, opacity: 0.95 }));
+        var solid = new THREE.Mesh(
+          cube ? new THREE.BoxGeometry(0.24, 0.24, 0.24) : new THREE.OctahedronGeometry(0.16),
+          new THREE.MeshBasicMaterial({ color: it.color }));
+        var halo = glow(it.color, 1.9, 0.45);
+        var hit = new THREE.Mesh(new THREE.SphereGeometry(0.75, 8, 8),
+          new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }));
+        g.add(shell, solid, halo, hit);
+
+        var tag = doc.createElement('button');
+        tag.type = 'button'; tag.className = 'tag'; tag.textContent = it.name;
+        tag.style.setProperty('--c', it.color);
+        tagsEl.appendChild(tag);
+
+        var node = { name: it.name, key: key, color: it.color, group: g, shell: shell, solid: solid, halo: halo, hit: hit,
+                     tag: tag, chip: null, hv: 0, pulse: 0, on: false, R: radius };
+        hit.userData.node = node;
+        return node;
+      });
+      return { tilt: tilt, spin: spin, lineMat: lineMat, nodes: nodes, radius: radius };
+    }
+
+    var LANGS = [
+      { name: 'Python', color: '#58e6ff' }, { name: 'C++', color: '#7b8cff' },
+      { name: 'JavaScript', color: '#ffc857' }, { name: 'Java', color: '#ff7a8a' }, { name: 'PHP', color: '#b58cff' }
+    ];
+    var TOOLS = [
+      { name: 'Docker', color: '#5ab8ff' }, { name: 'Git', color: '#ff8a5c' }, { name: 'GitHub', color: '#d9def7' }
+    ];
+    var langOrbit = makeOrbit('lang', 4.0, LANGS, '#58e6ff', 'octa');
+    var toolOrbit = makeOrbit('tool', 2.5, TOOLS, '#9b7bff', 'cube');
+    var allNodes = langOrbit.nodes.concat(toolOrbit.nodes);
+
+    /* hubungkan chip HTML dengan node 3D */
+    var uiHover = null;
+    var clearTimer = null;
+    [].forEach.call(doc.querySelectorAll('.chip'), function (chip) {
+      var n = allNodes.filter(function (x) { return x.name === chip.getAttribute('data-node'); })[0];
+      if (!n) return;
+      n.chip = chip;
+      function enter() { uiHover = n; }
+      function leave() { if (uiHover === n) uiHover = null; }
+      chip.addEventListener('mouseenter', enter);
+      chip.addEventListener('mouseleave', leave);
+      chip.addEventListener('focus', enter);
+      chip.addEventListener('blur', leave);
+      chip.addEventListener('click', function () {
+        n.pulse = 1; uiHover = n;
+        clearTimeout(clearTimer);
+        clearTimer = setTimeout(function () { if (uiHover === n) uiHover = null; }, 2200);
+      });
+    });
+    allNodes.forEach(function (n) {
+      n.tag.addEventListener('mouseenter', function () { uiHover = n; });
+      n.tag.addEventListener('mouseleave', function () { if (uiHover === n) uiHover = null; });
+      n.tag.addEventListener('focus', function () { uiHover = n; });
+      n.tag.addEventListener('blur', function () { if (uiHover === n) uiHover = null; });
+      n.tag.addEventListener('click', function () { n.pulse = 1; });
+    });
+
+    /* bintang */
+    var N = 1700, pos = new Float32Array(N * 3), col = new Float32Array(N * 3);
+    var cA = new THREE.Color('#58e6ff'), cB = new THREE.Color('#9b7bff'), cC = new THREE.Color('#ffffff'), tmp = new THREE.Color();
+    for (var i = 0; i < N; i++) {
+      var r = 9 + Math.random() * 40, th = Math.random() * Math.PI * 2, ph = Math.acos(2 * Math.random() - 1);
+      pos[i * 3] = r * Math.sin(ph) * Math.cos(th);
+      pos[i * 3 + 1] = r * Math.sin(ph) * Math.sin(th);
+      pos[i * 3 + 2] = r * Math.cos(ph);
+      var k = Math.random();
+      tmp.copy(k < 0.45 ? cA : k < 0.8 ? cB : cC);
+      col[i * 3] = tmp.r; col[i * 3 + 1] = tmp.g; col[i * 3 + 2] = tmp.b;
+    }
+    var starGeo = new THREE.BufferGeometry();
+    starGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    starGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    var stars = new THREE.Points(starGeo, new THREE.PointsMaterial({
+      size: 0.09, vertexColors: true, transparent: true, opacity: 0.9, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending
+    }));
+    scene.add(stars);
+
+    /* grid lantai */
+    var grid = new THREE.GridHelper(80, 80, 0x58e6ff, 0x2a3170);
+    grid.position.y = -4.4;
+    grid.material.transparent = true; grid.material.opacity = 0.24;
+    scene.add(grid);
+
+    /* gelombang sinyal untuk bagian kontak */
+    var waves = [0, 1, 2].map(function () {
+      var m = new THREE.Mesh(new THREE.RingGeometry(0.985, 1, 96),
+        new THREE.MeshBasicMaterial({ color: '#58e6ff', transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false }));
+      m.rotation.x = -Math.PI / 2;
+      world.add(m);
+      return m;
+    });
+
+    /* ukuran & tata letak responsif */
+    var W = 1, H = 1, aspect = 1, zs = 1, wxBase = 0, stacked = false;
+    function resize() {
+      W = window.innerWidth; H = window.innerHeight;
+      renderer.setSize(W, H);
+      aspect = W / H;
+      camera.aspect = aspect; camera.updateProjectionMatrix();
+      stacked = aspect < 1.15;
+      zs = Math.max(1, 0.95 / aspect);
+      wxBase = stacked ? 0 : clamp((aspect - 1.15) * 5, 0, 3);
+      measure(); updateTarget();
+    }
+
+    /* target kamera dari posisi gulir */
+    var cur = {}, tgt = {};
+    function updateTarget() {
+      var y = window.pageYOffset || 0, i = 0;
+      for (var k = 0; k < tops.length; k++) { if (y >= tops[k] - 2) i = k; }
+      var n = Math.min(i + 1, tops.length - 1), f = 0;
+      if (n !== i) f = clamp((y - tops[i]) / ((tops[n] - tops[i]) || 1), 0, 1);
+      var e = smooth(clamp((f - 0.3) / 0.6, 0, 1));
+      var a = STATES[i], b = STATES[n];
+      KEYS.forEach(function (key) { tgt[key] = a[key] + (b[key] - a[key]) * e; });
+    }
+
+    /* pointer: paralaks, seret, dan hover */
+    var ptr = { x: 0, y: 0, sx: 0, sy: 0, active: false };
+    var ndc = new THREE.Vector2();
+    var ray = new THREE.Raycaster();
+    var drag = null, fling = 0, lastD = 0, lastMoveT = 0;
+    var langSpin = 0, toolSpin = 0;
+
+    window.addEventListener('pointermove', function (e) {
+      ptr.x = (e.clientX / window.innerWidth) * 2 - 1;
+      ptr.y = -((e.clientY / window.innerHeight) * 2 - 1);
+      ndc.set(ptr.x, ptr.y);
+      if (e.pointerType !== 'touch') ptr.active = true;
+      if (drag) {
+        var d = (e.clientX - drag.x) * 0.010;
+        drag.x = e.clientX;
+        langSpin += d; toolSpin -= d * 1.3;
+        lastD = d; lastMoveT = performance.now();
+      }
+    }, { passive: true });
+    window.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'touch') {
+        ptr.x = (e.clientX / window.innerWidth) * 2 - 1;
+        ptr.y = -((e.clientY / window.innerHeight) * 2 - 1);
+        ndc.set(ptr.x, ptr.y); ptr.active = true;
+        return;
+      }
+      if (e.button !== 0) return;
+      if (e.target.closest && e.target.closest('a, button, input, textarea, select')) return;
+      drag = { x: e.clientX }; fling = 0; lastD = 0;
+      doc.body.classList.add('dragging');
+    });
+    function endDrag() {
+      if (drag && performance.now() - lastMoveT < 90) fling = clamp(lastD * 40, -6, 6);
+      drag = null; doc.body.classList.remove('dragging');
+    }
+    window.addEventListener('pointerup', function (e) { endDrag(); if (e.pointerType === 'touch') setTimeout(function () { ptr.active = false; }, 1600); });
+    window.addEventListener('pointercancel', function () { endDrag(); ptr.active = false; });
+    doc.addEventListener('mouseleave', function () { ptr.active = false; });
+    window.addEventListener('scroll', updateTarget, { passive: true });
+    window.addEventListener('resize', resize);
+    window.addEventListener('load', function () { measure(); updateTarget(); });
+    if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(function () { measure(); updateTarget(); });
+
+    resize();
+    KEYS.forEach(function (k) { cur[k] = tgt[k]; });
+
+    /* loop */
+    var v = new THREE.Vector3();
+    var last = performance.now(), t = 0;
+    var langK = 1, toolK = 1;
+    var rayHover = null;
+    var speedScale = reduce ? 0.3 : 1;
+
+    function pick() {
+      var list = [];
+      if (cur.lW > 0.5) langOrbit.nodes.forEach(function (n) { list.push(n.hit); });
+      if (cur.tW > 0.5) toolOrbit.nodes.forEach(function (n) { list.push(n.hit); });
+      if (!ptr.active || !list.length) return null;
+      ray.setFromCamera(ndc, camera);
+      var hits = ray.intersectObjects(list, false);
+      return hits.length ? hits[0].object.userData.node : null;
+    }
+
+    function frame(now) {
+      requestAnimationFrame(frame);
+      var dt = Math.min(0.05, (now - last) / 1000); last = now; t += dt;
+
+      var boot = reduce ? 1 : 1 - Math.pow(1 - Math.min(1, t / 2.4), 3);
+      var ease = 1 - Math.exp(-dt * (reduce ? 20 : 3.2));
+      KEYS.forEach(function (k) { cur[k] += (tgt[k] - cur[k]) * ease; });
+
+      ptr.sx += (ptr.x - ptr.sx) * (1 - Math.exp(-dt * 3));
+      ptr.sy += (ptr.y - ptr.sy) * (1 - Math.exp(-dt * 3));
+      var par = reduce ? 0 : 1;
+
+      /* hover */
+      rayHover = pick();
+      var hovered = uiHover || rayHover;
+      doc.body.classList.toggle('pick', !!rayHover && !drag);
+
+      /* putaran orbit */
+      langK += ((hovered && hovered.key === 'lang' ? 0.15 : 1) - langK) * (1 - Math.exp(-dt * 6));
+      toolK += ((hovered && hovered.key === 'tool' ? 0.15 : 1) - toolK) * (1 - Math.exp(-dt * 6));
+      langSpin += (0.28 * langK * speedScale + fling) * dt;
+      toolSpin += (-0.45 * toolK * speedScale - fling * 1.3) * dt;
+      fling *= Math.exp(-dt * 2.2);
+      langOrbit.spin.rotation.y = langSpin;
+      toolOrbit.spin.rotation.y = toolSpin;
+      langOrbit.tilt.rotation.set(cur.lT, 0, cur.lZ);
+      toolOrbit.tilt.rotation.set(cur.tT, 0, cur.tZ);
+      langOrbit.spin.scale.setScalar(0.2 + 0.8 * boot);
+      toolOrbit.spin.scale.setScalar(0.2 + 0.8 * boot);
+      langOrbit.lineMat.opacity = cur.lo * boot;
+      toolOrbit.lineMat.opacity = cur.to * boot;
+
+      /* inti */
+      var pulse = 1 + 0.04 * Math.sin(t * 2.2);
+      core.scale.setScalar(Math.max(0.001, cur.core * boot * pulse));
+      shellA.rotation.y += dt * 0.25 * speedScale; shellA.rotation.x += dt * 0.12 * speedScale;
+      shellB.rotation.y -= dt * 0.45 * speedScale; shellB.rotation.z += dt * 0.2 * speedScale;
+      ringA.rotation.x = t * 0.3 * speedScale + 1.2; ringA.rotation.y = t * 0.2 * speedScale;
+      ringB.rotation.x = -t * 0.22 * speedScale + 0.4; ringB.rotation.z = t * 0.26 * speedScale;
+      coreGlow.material.opacity = (0.75 + 0.15 * Math.sin(t * 1.7)) * boot;
+
+      /* gelombang sinyal */
+      waves.forEach(function (m, i) {
+        var ph = (t * 0.22 + i / 3) % 1;
+        m.scale.setScalar(2 + ph * 14);
+        m.material.opacity = (1 - ph) * (1 - ph) * 0.55 * cur.sig;
+      });
+
+      /* latar */
+      stars.rotation.y = t * 0.01 * speedScale;
+      stars.material.opacity = 0.9 * boot;
+      grid.position.z = reduce ? 0 : (t * 0.5) % 1;
+
+      /* posisi dunia & kamera */
+      var camZ = cur.cz * zs, camY = cur.cy * zs;
+      world.position.x = wxBase;
+      world.position.y = (stacked ? 0.2 * camZ : 0) + (reduce ? 0 : Math.sin(t * 0.6) * 0.08);
+      camera.position.set(cur.cx + ptr.sx * 0.7 * par, camY + ptr.sy * 0.4 * par, camZ);
+      camera.lookAt(0, 0, 0);
+      scene.updateMatrixWorld(true);
+      camera.updateMatrixWorld();
+
+      /* node dan label */
+      var dc = camera.position.distanceTo(world.position);
+      allNodes.forEach(function (n) {
+        var isOn = n === hovered;
+        n.hv += ((isOn ? 1 : 0) + n.pulse * 0.9 - n.hv) * (1 - Math.exp(-dt * 10));
+        n.pulse = Math.max(0, n.pulse - dt * 1.6);
+        n.group.scale.setScalar(1 + n.hv * 0.6);
+        n.halo.material.opacity = 0.4 + Math.min(1, n.hv) * 0.5;
+        n.shell.rotation.x += dt * 0.9 * speedScale; n.shell.rotation.y += dt * 1.2 * speedScale;
+        n.solid.rotation.y -= dt * 0.7 * speedScale;
+
+        if (n.on !== isOn) {
+          n.on = isOn;
+          n.tag.classList.toggle('on', isOn);
+          if (n.chip) n.chip.classList.toggle('on', isOn);
+        }
+
+        var w = n.key === 'lang' ? cur.lW : cur.tW;
+        n.group.getWorldPosition(v);
+        var d = v.distanceTo(camera.position);
+        v.project(camera);
+        var visible = w > 0.15 && v.z < 1;
+        n.tag.style.visibility = visible ? 'visible' : 'hidden';
+        n.tag.style.pointerEvents = (visible && w > 0.5) ? 'auto' : 'none';
+        if (visible) {
+          var depth = clamp(1 - (d - (dc - n.R)) / (2 * n.R), 0, 1);
+          n.tag.style.opacity = (w * (0.4 + 0.6 * depth)).toFixed(3);
+          n.tag.style.transform = 'translate3d(' + ((v.x * 0.5 + 0.5) * W).toFixed(1) + 'px,' + ((-v.y * 0.5 + 0.5) * H).toFixed(1) + 'px,0)';
+        }
+      });
+
+      renderer.render(scene, camera);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  try { initScene(); } catch (err) {
+    root.classList.add('no-webgl');
+    if (window.console) console.error(err);
+  }
+
+  measure();
+  updateFab();
+  window.addEventListener('scroll', updateFab, { passive: true });
+  window.addEventListener('resize', function () { measure(); updateFab(); });
+})();
+</script>
+</body>
+</html>
